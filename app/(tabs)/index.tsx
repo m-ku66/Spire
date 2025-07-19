@@ -1,75 +1,213 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+// app/(tabs)/index.tsx - Simple Matter.js Physics Demo
+import Matter from 'matter-js';
+import React, { useEffect, useRef, useState } from 'react';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-export default function HomeScreen() {
+interface PhysicsBody {
+  id: string;
+  body: Matter.Body;
+  color: string;
+}
+
+export default function PhysicsDemo() {
+  const engineRef = useRef<Matter.Engine | null>(null);
+  const [bodies, setBodies] = useState<PhysicsBody[]>([]);
+  const animationRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    // Create Matter.js engine
+    const engine = Matter.Engine.create();
+    engine.world.gravity.y = 0.8; // Adjust gravity
+    engineRef.current = engine;
+
+    // Create ground
+    const ground = Matter.Bodies.rectangle(
+      SCREEN_WIDTH / 2,
+      SCREEN_HEIGHT - 30,
+      SCREEN_WIDTH,
+      60,
+      {
+        isStatic: true,
+        render: { fillStyle: '#333' }
+      }
+    );
+
+    // Create walls
+    const leftWall = Matter.Bodies.rectangle(-30, SCREEN_HEIGHT / 2, 60, SCREEN_HEIGHT, { isStatic: true });
+    const rightWall = Matter.Bodies.rectangle(SCREEN_WIDTH + 30, SCREEN_HEIGHT / 2, 60, SCREEN_HEIGHT, { isStatic: true });
+
+    // Add static bodies to world
+    Matter.World.add(engine.world, [ground, leftWall, rightWall]);
+
+    // Create initial falling ball
+    createBall();
+
+    // Start the engine
+    const gameLoop = () => {
+      if (engineRef.current) {
+        Matter.Engine.update(engineRef.current, 16.667); // 60 FPS
+        updateBodies();
+      }
+      animationRef.current = requestAnimationFrame(gameLoop);
+    };
+
+    gameLoop();
+
+    // Cleanup on unmount
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      if (engineRef.current) {
+        Matter.Engine.clear(engineRef.current);
+      }
+    };
+  }, []);
+
+  const createBall = () => {
+    if (!engineRef.current) return;
+
+    // Random spawn position
+    const x = Math.random() * (SCREEN_WIDTH - 100) + 50;
+    const y = 50;
+
+    // Random size and color
+    const radius = Math.random() * 20 + 15;
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+
+    // Create Matter.js body
+    const body = Matter.Bodies.circle(x, y, radius, {
+      restitution: 0.8, // Bounciness
+      friction: 0.3,
+      render: { fillStyle: color }
+    });
+
+    // Add to world
+    Matter.World.add(engineRef.current.world, body);
+
+    // Add to our state
+    const physicsBody: PhysicsBody = {
+      id: `ball_${Date.now()}_${Math.random()}`,
+      body,
+      color
+    };
+
+    setBodies(prev => [...prev, physicsBody]);
+  };
+
+  const updateBodies = () => {
+    if (!engineRef.current) return;
+
+    // Update all bodies based on Matter.js positions
+    setBodies(prev =>
+      prev.filter(physicsBody => {
+        // Remove bodies that have fallen off screen
+        if (physicsBody.body.position.y > SCREEN_HEIGHT + 100) {
+          Matter.World.remove(engineRef.current!.world, physicsBody.body);
+          return false;
+        }
+        return true;
+      })
+    );
+  };
+
+  const handleScreenTap = () => {
+    createBall();
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={handleScreenTap}
+      activeOpacity={1}
+    >
+      <View style={styles.gameArea}>
+        {/* Render ground */}
+        <View style={[styles.ground, {
+          bottom: 0,
+          width: SCREEN_WIDTH,
+          height: 60
+        }]} />
+
+        {/* Render physics bodies */}
+        {bodies.map(physicsBody => {
+          const { body, id, color } = physicsBody;
+          const radius = (body as any).circleRadius || 20;
+
+          return (
+            <View
+              key={id}
+              style={[
+                styles.ball,
+                {
+                  left: body.position.x - radius,
+                  top: body.position.y - radius,
+                  width: radius * 2,
+                  height: radius * 2,
+                  borderRadius: radius,
+                  backgroundColor: color,
+                  transform: [{ rotate: `${body.angle}rad` }]
+                }
+              ]}
+            />
+          );
+        })}
+      </View>
+
+      {/* UI */}
+      <View style={styles.ui}>
+        <Text style={styles.title}>Matter.js Physics Demo! 🔥</Text>
+        <Text style={styles.instructions}>Tap anywhere to create a ball!</Text>
+        <Text style={styles.info}>Balls: {bodies.length}</Text>
+      </View>
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: '#1a1a1a',
   },
-  stepContainer: {
-    gap: 8,
+  gameArea: {
+    flex: 1,
+    position: 'relative',
+  },
+  ground: {
+    position: 'absolute',
+    backgroundColor: '#333',
+  },
+  ball: {
+    position: 'absolute',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  ui: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    right: 20,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  instructions: {
+    fontSize: 16,
+    color: '#ccc',
+    marginBottom: 4,
+  },
+  info: {
+    fontSize: 14,
+    color: '#888',
   },
 });
