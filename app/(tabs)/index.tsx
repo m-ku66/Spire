@@ -1,9 +1,13 @@
-import { StyleSheet, Text, View } from 'react-native';
+import GameEngine from '@/components/GameEngine';
+import { StyleSheet, View } from 'react-native';
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
+      <GameEngine
+        onReady={() => console.log('Game engine ready!')}
+        onError={(error) => console.error('Game engine error:', error)}
+      />
     </View>
   );
 }
@@ -11,6 +15,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a202c',
+    width: '100%',
+    height: '100%',
   },
 });
