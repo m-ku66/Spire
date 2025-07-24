@@ -16,6 +16,8 @@ const { width: screenWidthPixels, height: screenHeightPixels } = Dimensions.get(
 interface GameEngineProps {
     onReady?: () => void;
     onError?: (error: Error) => void;
+    onScoreUpdate?: (score: number) => void;
+    onGameOver?: (finalScore: number) => void;
 }
 
 interface GameEngineContext {
@@ -41,7 +43,7 @@ const GAME_STATES = {
 
 type GameState = typeof GAME_STATES[keyof typeof GAME_STATES];
 
-const GameEngine: React.FC<GameEngineProps> = ({ onReady, onError }) => {
+const GameEngine: React.FC<GameEngineProps> = ({ onReady, onError, onScoreUpdate, onGameOver }) => {
     const contextRef = useRef<GameEngineContext | null>(null);
     const animationFrameRef = useRef<number | null>(null);
     const subscriptionRef = useRef<any>(null); // Store the subscription for cleanup
@@ -144,7 +146,11 @@ const GameEngine: React.FC<GameEngineProps> = ({ onReady, onError }) => {
         }
 
         // Update score display
-        setScore(blocksRef.current.length);
+        const newScore = blocksRef.current.length;
+        setScore(newScore);
+
+        // Notify parent component of score update
+        onScoreUpdate?.(newScore);
 
         // Create new block
         const newBlock = new Block(lastBlock || null);
@@ -314,7 +320,11 @@ const GameEngine: React.FC<GameEngineProps> = ({ onReady, onError }) => {
 
     const endGame = () => {
         console.log('Game ended!');
+        const finalScore = blocksRef.current.length - 1; // Subtract 1 because we don't count the foundation block
         setGameState(GAME_STATES.ENDED);
+
+        // Notify parent component of game over with final score
+        onGameOver?.(finalScore);
     };
 
     // Game tick function - updates active blocks
