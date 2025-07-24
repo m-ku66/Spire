@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { generateCurrentBlockColor } from "./themes"; // Import our theme system!
 
 // Block states (matching original Stack game)
 const BLOCK_STATES = {
@@ -86,7 +87,7 @@ class Block {
       z: this.targetBlock ? this.targetBlock.position.z : 0,
     };
 
-    // Color generation
+    // Color generation using our theme system!
     this.colorOffset = this.targetBlock
       ? this.targetBlock.colorOffset
       : Math.round(Math.random() * 100);
@@ -123,19 +124,12 @@ class Block {
     });
   }
 
-  // Generate block color (matching original algorithm)
+  // Generate block color using our flexible theme system!
   private generateColor(): void {
-    if (!this.targetBlock) {
-      // First block is dark
-      this.color = 0x333344;
-    } else {
-      // Generate rainbow colors based on index + offset
-      const offset = this.index + this.colorOffset;
-      const r = Math.sin(0.3 * offset) * 55 + 400;
-      const g = Math.sin(0.3 * offset + 2) * 55 + 200;
-      const b = Math.sin(0.3 * offset + 4) * 55 + 200;
-      this.color = new THREE.Color(r / 255, g / 255, b / 255);
-    }
+    // Use the current theme's color generator function
+    this.color = generateCurrentBlockColor(this.index, this.colorOffset);
+
+    console.log(`Block ${this.index} color generated using current theme`);
   }
 
   // Create the Three.js mesh

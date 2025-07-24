@@ -3,6 +3,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as THREE from 'three';
 import Block from './BlockClass'; // Import our Block class
+import {
+    getCurrentBackgroundColor,
+    getCurrentMessageColor,
+    getCurrentScoreColor
+} from './themes'; // Import our theme system!
 
 // Get device dimensions
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -388,7 +393,9 @@ const GameEngine: React.FC<GameEngineProps> = ({ onReady, onError }) => {
             renderer.setSize(screenWidth, screenHeight);
             // Set viewport to match actual WebGL buffer dimensions
             renderer.setViewport(0, 0, actualWidth, actualHeight);
-            renderer.setClearColor('#D0CBC7', 1); // Match original game's background
+
+            // Use theme system for background color! 🎨
+            renderer.setClearColor(getCurrentBackgroundColor(), 1);
 
             // Create scene
             const scene = new THREE.Scene();
@@ -540,95 +547,96 @@ const GameEngine: React.FC<GameEngineProps> = ({ onReady, onError }) => {
         };
     }, []);
 
+    // Create dynamic styles that use theme colors! 🎨
+    const dynamicStyles = StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: getCurrentBackgroundColor(), // Theme-aware background!
+        },
+        glView: {
+            flex: 1,
+        },
+        uiOverlay: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            pointerEvents: 'none', // Allow touches to pass through to TouchableOpacity
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingTop: 60,
+            paddingBottom: 100,
+        },
+        scoreContainer: {
+            alignItems: 'center',
+        },
+        scoreText: {
+            fontSize: 48,
+            fontWeight: 'regular',
+            color: getCurrentScoreColor(), // Theme-aware score color!
+        },
+        messageContainer: {
+            alignItems: 'center',
+            paddingHorizontal: 20,
+        },
+        messageText: {
+            fontSize: 24,
+            fontWeight: '400',
+            color: getCurrentMessageColor(), // Theme-aware message color!
+            textAlign: 'center',
+            overflow: 'hidden',
+        },
+        touchArea: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+        },
+    });
+
     return (
-        <View style={styles.container}>
+        <View style={dynamicStyles.container}>
             <GLView
-                style={styles.glView}
+                style={dynamicStyles.glView}
                 onContextCreate={initializeThreeJS}
                 // Enable multisampling for smoother edges
                 msaaSamples={4}
             />
 
             {/* Game UI Overlay */}
-            <View style={styles.uiOverlay}>
+            <View style={dynamicStyles.uiOverlay}>
                 {/* Score Display */}
-                <View style={styles.scoreContainer}>
-                    <Text style={styles.scoreText}>{score}</Text>
+                <View style={dynamicStyles.scoreContainer}>
+                    <Text style={dynamicStyles.scoreText}>{score}</Text>
                 </View>
 
                 {/* Game State Messages */}
-                <View style={styles.messageContainer}>
+                <View style={dynamicStyles.messageContainer}>
                     {gameState === GAME_STATES.READY && (
-                        <Text style={styles.messageText}>Tap to Start!</Text>
+                        <Text style={dynamicStyles.messageText}>Tap to Start!</Text>
                     )}
                     {gameState === GAME_STATES.PLAYING && (
-                        <Text style={styles.messageText}>Tap to Drop Block!</Text>
+                        <Text style={dynamicStyles.messageText}>Tap to Drop Block!</Text>
                     )}
                     {gameState === GAME_STATES.ENDED && (
-                        <Text style={styles.messageText}>Game Over! Tap to Restart</Text>
+                        <Text style={dynamicStyles.messageText}>Game Over! Tap to Restart</Text>
                     )}
                     {gameState === GAME_STATES.RESETTING && (
-                        <Text style={styles.messageText}>Restarting...</Text>
+                        <Text style={dynamicStyles.messageText}>Restarting...</Text>
                     )}
                 </View>
             </View>
 
             {/* Touch Handler - covers entire screen */}
             <TouchableOpacity
-                style={styles.touchArea}
+                style={dynamicStyles.touchArea}
                 onPress={onGameAction}
                 activeOpacity={1} // No visual feedback needed
             />
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#D0CBC7', // Match original game's background color
-    },
-    glView: {
-        flex: 1,
-    },
-    uiOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        pointerEvents: 'none', // Allow touches to pass through to TouchableOpacity
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingTop: 60,
-        paddingBottom: 100,
-    },
-    scoreContainer: {
-        alignItems: 'center',
-    },
-    scoreText: {
-        fontSize: 48,
-        fontWeight: 'regular',
-        color: '#333',
-    },
-    messageContainer: {
-        alignItems: 'center',
-        paddingHorizontal: 20,
-    },
-    messageText: {
-        fontSize: 24,
-        fontWeight: '400',
-        color: '#333',
-        textAlign: 'center',
-        overflow: 'hidden',
-    },
-    touchArea: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-    },
-});
 
 export default GameEngine;
