@@ -131,7 +131,7 @@ class Block {
     } else {
       // Generate rainbow colors based on index + offset
       const offset = this.index + this.colorOffset;
-      const r = Math.sin(0.3 * offset) * 55 + 200;
+      const r = Math.sin(0.3 * offset) * 55 + 400;
       const g = Math.sin(0.3 * offset + 2) * 55 + 200;
       const b = Math.sin(0.3 * offset + 4) * 55 + 200;
       this.color = new THREE.Color(r / 255, g / 255, b / 255);
@@ -182,9 +182,9 @@ class Block {
       const currentValue = this.position[this.workingPlane];
 
       // Debug logging to see if tick is being called
-      console.log(
-        `Block ${this.index} tick: ${this.workingPlane}=${currentValue}, direction=${this.direction}`
-      );
+      // console.log(
+      //   `Block ${this.index} tick: ${this.workingPlane}=${currentValue}, direction=${this.direction}`
+      // );
 
       // Check boundaries and reverse if needed (use >= and <= to handle exact boundary values)
       if (
@@ -201,11 +201,11 @@ class Block {
       if (this.mesh) {
         this.mesh.position[this.workingPlane] =
           this.position[this.workingPlane];
-        console.log(
-          `Block ${this.index} moved to ${this.workingPlane}=${
-            this.position[this.workingPlane]
-          }`
-        );
+        // console.log(
+        //   `Block ${this.index} moved to ${this.workingPlane}=${
+        //     this.position[this.workingPlane]
+        //   }`
+        // );
       } else {
         console.warn(`Mesh not initialized for block ${this.index}`);
       }
