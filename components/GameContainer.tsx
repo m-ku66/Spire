@@ -1,3 +1,7 @@
+import BackIcon from '@/assets/icons/arrow-left-long-fill.svg';
+import CoinIcon from '@/assets/icons/copper-coin-line.svg';
+import GiftIcon from '@/assets/icons/gift-line.svg';
+import ShopIcon from '@/assets/icons/store-2-fill.svg';
 import { AppState, ModalType, useAppState } from '@/components/AppStateProvider';
 import GameEngine from '@/components/GameEngine';
 import { StatusBar } from 'expo-status-bar';
@@ -61,7 +65,7 @@ const GameContainer: React.FC = () => {
 
                 {/* Currency Display */}
                 <View style={styles.currencyContainer}>
-                    <Text style={[styles.currencyIcon, { color: getCurrentScoreColor() }]}>💰</Text>
+                    <CoinIcon width={24} height={24} fill={getCurrentScoreColor()} />
                     <Text style={[styles.currencyText, { color: getCurrentScoreColor() }]}>
                         {state.playerData.currency}
                     </Text>
@@ -81,18 +85,26 @@ const GameContainer: React.FC = () => {
                     style={[styles.menuButton, { borderColor: getCurrentMessageColor() }]}
                     onPress={() => openModal(ModalType.SHOP)}
                 >
-                    <Text style={[styles.menuButtonText, { color: getCurrentMessageColor() }]}>
-                        🛍️ SHOP
-                    </Text>
+                    <View style={styles.basicButton}>
+                        <ShopIcon width={24} height={24} fill={getCurrentMessageColor()} />
+                        <Text style={[styles.menuButtonText, { color: getCurrentMessageColor() }]}>
+                            SHOP
+                        </Text>
+                    </View>
+
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     style={[styles.menuButton, { borderColor: getCurrentMessageColor() }]}
                     onPress={() => openModal(ModalType.DAILY_REWARDS)}
                 >
-                    <Text style={[styles.menuButtonText, { color: getCurrentMessageColor() }]}>
-                        🎁 DAILY REWARDS
-                    </Text>
+                    <View style={styles.basicButton}>
+                        <GiftIcon width={24} height={24} fill={getCurrentMessageColor()} />
+                        <Text style={[styles.menuButtonText, { color: getCurrentMessageColor() }]}>
+                            DAILY REWARDS
+                        </Text>
+                    </View>
+
                 </TouchableOpacity>
             </View>
         </View>
@@ -147,42 +159,38 @@ const GameContainer: React.FC = () => {
     const renderHUD = () => {
         if (!state.showHUD) return null;
 
+        const iconColor = getCurrentScoreColor();
+
         return (
             <View style={styles.hudOverlay}>
-                {/* Top HUD - Currency and Shop Button */}
                 <View style={styles.topHUD}>
-                    {/* Currency Display */}
                     <View style={styles.hudCurrencyContainer}>
-                        <Text style={[styles.hudCurrencyIcon, { color: getCurrentScoreColor() }]}>💰</Text>
-                        <Text style={[styles.hudCurrencyText, { color: getCurrentScoreColor() }]}>
+                        <CoinIcon width={24} height={24} fill={iconColor} />
+                        <Text style={[styles.hudCurrencyText, { color: iconColor }]}>
                             {state.playerData.currency}
                         </Text>
                     </View>
 
-                    {/* Shop Button */}
                     <TouchableOpacity
-                        style={[styles.hudButton, { borderColor: getCurrentScoreColor() }]}
+                        style={[styles.hudButton, { borderColor: iconColor }]}
                         onPress={() => openModal(ModalType.SHOP)}
                     >
-                        <Text style={[styles.hudButtonText, { color: getCurrentScoreColor() }]}>🛍️</Text>
+                        <ShopIcon width={24} height={24} fill={iconColor} />
                     </TouchableOpacity>
 
-                    {/* Pause/Menu Button */}
                     <TouchableOpacity
-                        style={[styles.hudButton, { borderColor: getCurrentScoreColor() }]}
+                        style={[styles.hudButton, { borderColor: iconColor }]}
                         onPress={() => setAppState(AppState.MAIN_MENU)}
                     >
-                        <Text style={[styles.hudButtonText, { color: getCurrentScoreColor() }]}>⏸️</Text>
+                        <BackIcon width={24} height={24} fill={iconColor} />
                     </TouchableOpacity>
                 </View>
 
-                {/* Bottom HUD - could add more controls later */}
-                <View style={styles.bottomHUD}>
-                    {/* Could add things like power-ups, special abilities, etc. */}
-                </View>
+                <View style={styles.bottomHUD} />
             </View>
         );
     };
+
 
     // Render game playing screen
     const renderGameScreen = () => (
@@ -298,6 +306,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         borderRadius: 25,
         backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        gap: 8,
     },
     currencyIcon: {
         fontSize: 24,
@@ -319,6 +328,14 @@ const styles = StyleSheet.create({
     menuButtonText: {
         fontSize: 18,
         fontWeight: '600',
+    },
+
+    // Basic Button Style
+    basicButton: {
+        display: 'flex',
+        flexDirection: 'row',
+        gap: 8,
+        alignItems: 'center',
     },
 
     // Game Over Screen
@@ -354,11 +371,14 @@ const styles = StyleSheet.create({
         right: 0,
         bottom: 0,
         pointerEvents: 'box-none', // Allow touches to pass through to game
+        display: 'flex', // Sets up flex display
+        alignItems: 'flex-end', // Aligns content to the right of the screen
     },
     topHUD: {
-        flexDirection: 'row',
+        flexDirection: 'column',
         justifyContent: 'space-between',
-        alignItems: 'center',
+        alignItems: 'flex-end',
+        gap: 20,
         paddingTop: 60,
         paddingHorizontal: 20,
     },
@@ -369,23 +389,24 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
     },
     hudCurrencyContainer: {
+        display: 'flex',
+        gap: 4,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        // backgroundColor: 'rgba(0, 0, 0, 0.3)',
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 20,
     },
     hudCurrencyIcon: {
         fontSize: 16,
-        marginRight: 6,
     },
     hudCurrencyText: {
         fontSize: 16,
         fontWeight: '600',
     },
     hudButton: {
-        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        // backgroundColor: 'rgba(0, 0, 0, 0.3)',
         borderWidth: 1,
         borderRadius: 20,
         paddingHorizontal: 12,

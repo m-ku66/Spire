@@ -627,9 +627,9 @@ const GameEngine: React.FC<GameEngineProps> = ({ onReady, onError, onScoreUpdate
                     {gameState === GAME_STATES.READY && (
                         <Text style={dynamicStyles.messageText}>Tap to Start!</Text>
                     )}
-                    {gameState === GAME_STATES.PLAYING && (
+                    {/* {gameState === GAME_STATES.PLAYING && (
                         <Text style={dynamicStyles.messageText}>Tap to Drop Block!</Text>
-                    )}
+                    )} */}
                     {gameState === GAME_STATES.ENDED && (
                         <Text style={dynamicStyles.messageText}>Game Over! Tap to Restart</Text>
                     )}
